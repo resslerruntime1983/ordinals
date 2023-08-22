@@ -14,6 +14,7 @@ use {
 const PROTOCOL_ID: [u8; 3] = *b"ord";
 const BODY_TAG: [u8; 0] = [];
 const CONTENT_TYPE_TAG: [u8; 1] = [1];
+const PARENT_TAG: [u8; 1] = [3];
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) enum Curse {
@@ -134,6 +135,10 @@ impl Inscription {
 
   pub(crate) fn content_type(&self) -> Option<&str> {
     str::from_utf8(self.content_type.as_ref()?).ok()
+  }
+
+  pub(crate) fn parent(&self) -> Option<InscriptionId> {
+    todo!()
   }
 
   #[cfg(test)]

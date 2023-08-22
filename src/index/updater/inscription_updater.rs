@@ -10,8 +10,9 @@ pub(super) struct Flotsam {
 #[derive(Debug, Clone)]
 enum Origin {
   New {
-    fee: u64,
     cursed: bool,
+    fee: u64,
+    parent: Option<InscriptionId>,
     unbound: bool,
   },
   Old {
@@ -225,12 +226,26 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           );
         }
 
+        let parent = if let Some(parent) = inscription.inscription.parent() {
+          if floating_inscriptions
+            .iter()
+            .any(|flotsam| flotsam.inscription_id == parent)
+          {
+            Some(parent)
+          } else {
+            None
+          }
+        } else {
+          None
+        };
+
         floating_inscriptions.push(Flotsam {
           inscription_id,
           offset,
           origin: Origin::New {
-            fee: 0,
             cursed,
+            fee: 0,
+            parent,
             unbound,
           },
         });
@@ -250,8 +265,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           offset,
           origin:
             Origin::New {
-              fee: _,
               cursed,
+              fee: _,
+              parent,
               unbound,
             },
         } = flotsam
@@ -260,8 +276,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             inscription_id,
             offset,
             origin: Origin::New {
-              fee: (input_value - total_output_value) / u64::from(id_counter),
               cursed,
+              fee: (input_value - total_output_value) / u64::from(id_counter),
+              parent,
               unbound,
             },
           }
@@ -373,8 +390,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         false
       }
       Origin::New {
-        fee,
         cursed,
+        fee,
+        parent,
         unbound,
       } => {
         let number = if cursed {
@@ -417,6 +435,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             fee,
             height: self.height,
             number,
+            parent,
             sat,
             timestamp: self.timestamp,
           }
