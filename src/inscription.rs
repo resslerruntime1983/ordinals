@@ -41,7 +41,11 @@ pub(crate) struct TransactionInscription {
 impl Inscription {
   #[cfg(test)]
   pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
-    Self { content_type, body }
+    Self {
+      content_type,
+      body,
+      parent: None,
+    }
   }
 
   pub(crate) fn from_transaction(tx: &Transaction) -> Vec<TransactionInscription> {
@@ -437,7 +441,7 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
-        &[3],
+        &[5],
         b"bar",
         &[],
         b"ord",
@@ -453,6 +457,7 @@ mod tests {
       Ok(vec![Inscription {
         content_type: Some(b"text/plain;charset=utf-8".to_vec()),
         body: None,
+        parent: None,
       }]),
     );
   }
@@ -463,6 +468,7 @@ mod tests {
       InscriptionParser::parse(&envelope(&[b"ord", &[], b"foo"])),
       Ok(vec![Inscription {
         content_type: None,
+        parent: None,
         body: Some(b"foo".to_vec()),
       }]),
     );
@@ -792,8 +798,9 @@ mod tests {
 
     witness.push(
       &Inscription {
-        content_type: None,
         body: None,
+        content_type: None,
+        parent: None,
       }
       .append_reveal_script(script::Builder::new()),
     );
@@ -804,6 +811,7 @@ mod tests {
       InscriptionParser::parse(&witness).unwrap(),
       vec![Inscription {
         content_type: None,
+        parent: None,
         body: None,
       }]
     );
@@ -812,9 +820,10 @@ mod tests {
   #[test]
   fn unknown_odd_fields_are_ignored() {
     assert_eq!(
-      InscriptionParser::parse(&envelope(&[b"ord", &[3], &[0]])),
+      InscriptionParser::parse(&envelope(&[b"ord", &[5], &[0]])),
       Ok(vec![Inscription {
         content_type: None,
+        parent: None,
         body: None,
       }]),
     );

@@ -91,6 +91,7 @@ mod tests {
   fn without_sat_nav_links_or_output() {
     assert_regex_match!(
       InscriptionHtml {
+        parent: None,
         chain: Chain::Mainnet,
         genesis_fee: 1,
         genesis_height: 0,
@@ -146,6 +147,7 @@ mod tests {
   fn with_output() {
     assert_regex_match!(
       InscriptionHtml {
+        parent: None,
         chain: Chain::Mainnet,
         genesis_fee: 1,
         genesis_height: 0,
@@ -183,6 +185,7 @@ mod tests {
   fn with_sat() {
     assert_regex_match!(
       InscriptionHtml {
+        parent: None,
         chain: Chain::Mainnet,
         genesis_fee: 1,
         genesis_height: 0,
@@ -215,6 +218,7 @@ mod tests {
   fn with_prev_and_next() {
     assert_regex_match!(
       InscriptionHtml {
+        parent: None,
         chain: Chain::Mainnet,
         genesis_fee: 1,
         genesis_height: 0,
@@ -245,6 +249,7 @@ mod tests {
   fn with_cursed_and_unbound() {
     assert_regex_match!(
       InscriptionHtml {
+        parent: None,
         chain: Chain::Mainnet,
         genesis_fee: 1,
         genesis_height: 0,
