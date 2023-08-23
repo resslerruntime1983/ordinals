@@ -30,7 +30,7 @@ mod reorg;
 mod rtx;
 mod updater;
 
-const SCHEMA_VERSION: u64 = 5;
+const SCHEMA_VERSION: u64 = 6;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
