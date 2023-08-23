@@ -27,6 +27,7 @@ pub(crate) enum Curse {
 pub struct Inscription {
   body: Option<Vec<u8>>,
   content_type: Option<Vec<u8>>,
+  parent: Option<Vec<u8>>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -80,6 +81,7 @@ impl Inscription {
     Ok(Self {
       body: Some(body),
       content_type: Some(content_type.into()),
+      parent: None,
     })
   }
 
@@ -138,7 +140,20 @@ impl Inscription {
   }
 
   pub(crate) fn parent(&self) -> Option<InscriptionId> {
-    todo!()
+    let value = self.parent.as_ref()?;
+
+    if value.len() < Txid::LEN {
+      return None;
+    }
+
+    let (txid, index) = value.split_at(Txid::LEN);
+
+    let txid = Txid::from_slice(txid).unwrap();
+
+    Some(InscriptionId {
+      txid,
+      value: todo!(),
+    })
   }
 
   #[cfg(test)]
@@ -249,6 +264,7 @@ impl<'a> InscriptionParser<'a> {
 
     let body = fields.remove(BODY_TAG.as_slice());
     let content_type = fields.remove(CONTENT_TYPE_TAG.as_slice());
+    let parent = fields.remove(PARENT_TAG.as_slice());
 
     for tag in fields.keys() {
       if let Some(lsb) = tag.first() {
@@ -258,7 +274,11 @@ impl<'a> InscriptionParser<'a> {
       }
     }
 
-    Ok(Inscription { body, content_type })
+    Ok(Inscription {
+      body,
+      content_type,
+      parent,
+    })
   }
 
   fn advance(&mut self) -> Result<Instruction<'a>> {
