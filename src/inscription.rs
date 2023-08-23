@@ -152,12 +152,24 @@ impl Inscription {
 
     let (txid, index) = value.split_at(Txid::LEN);
 
+    if let Some(last) = index.last() {
+      if *last == 0 {
+        return None;
+      }
+    }
+
     let txid = Txid::from_slice(txid).unwrap();
 
-    Some(InscriptionId {
-      txid,
-      index: todo!(),
-    })
+    let index_array = [
+      index.get(0).copied().unwrap_or(0),
+      index.get(1).copied().unwrap_or(0),
+      index.get(2).copied().unwrap_or(0),
+      index.get(3).copied().unwrap_or(0),
+    ];
+
+    let index = u32::from_le_bytes(index_array);
+
+    Some(InscriptionId { txid, index })
   }
 
   #[cfg(test)]
