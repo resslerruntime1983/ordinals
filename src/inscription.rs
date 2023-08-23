@@ -12,6 +12,7 @@ use {
 };
 
 const PROTOCOL_ID: [u8; 3] = *b"ord";
+
 const BODY_TAG: [u8; 0] = [];
 const CONTENT_TYPE_TAG: [u8; 1] = [1];
 const PARENT_TAG: [u8; 1] = [3];

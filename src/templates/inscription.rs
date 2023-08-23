@@ -10,6 +10,7 @@ pub(crate) struct InscriptionHtml {
   pub(crate) next: Option<InscriptionId>,
   pub(crate) number: i64,
   pub(crate) output: Option<TxOut>,
+  pub(crate) parent: Option<InscriptionId>,
   pub(crate) previous: Option<InscriptionId>,
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
@@ -18,19 +19,20 @@ pub(crate) struct InscriptionHtml {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InscriptionJson {
-  pub inscription_id: InscriptionId,
-  pub number: i64,
-  pub genesis_height: u64,
-  pub genesis_fee: u64,
-  pub output_value: Option<u64>,
   pub address: Option<String>,
+  pub content_length: Option<usize>,
+  pub content_type: Option<String>,
+  pub genesis_fee: u64,
+  pub genesis_height: u64,
+  pub inscription_id: InscriptionId,
+  pub next: Option<InscriptionId>,
+  pub number: i64,
+  pub output_value: Option<u64>,
+  pub previous: Option<InscriptionId>,
   pub sat: Option<Sat>,
   pub satpoint: SatPoint,
-  pub content_type: Option<String>,
-  pub content_length: Option<usize>,
   pub timestamp: i64,
-  pub previous: Option<InscriptionId>,
-  pub next: Option<InscriptionId>,
+  pub parent: Option<InscriptionId>,
 }
 
 impl InscriptionJson {
@@ -40,6 +42,7 @@ impl InscriptionJson {
     genesis_height: u64,
     inscription: Inscription,
     inscription_id: InscriptionId,
+    parent: Option<InscriptionId>,
     next: Option<InscriptionId>,
     number: i64,
     output: Option<TxOut>,
@@ -52,6 +55,7 @@ impl InscriptionJson {
       inscription_id,
       number,
       genesis_height,
+      parent,
       genesis_fee,
       output_value: output.as_ref().map(|o| o.value),
       address: output
