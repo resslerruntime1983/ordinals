@@ -281,4 +281,62 @@ mod tests {
       .unindent()
     );
   }
+
+  #[test]
+  fn with_parent() {
+    assert_regex_match!(
+      InscriptionHtml {
+        parent: Some(inscription_id(2)),
+        chain: Chain::Mainnet,
+        genesis_fee: 1,
+        genesis_height: 0,
+        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
+        inscription_id: inscription_id(1),
+        next: None,
+        number: 1,
+        output: None,
+        previous: None,
+        sat: None,
+        satpoint: satpoint(1, 0),
+        timestamp: timestamp(0),
+      },
+      "
+        <h1>Inscription 1</h1>
+        <div class=inscription>
+        <div>❮</div>
+        <iframe .* src=/preview/1{64}i1></iframe>
+        <div>❯</div>
+        </div>
+        <dl>
+          <dt>id</dt>
+          <dd class=monospace>1{64}i1</dd>
+          <dt>parent</dt>
+          <dd><a class=monospace href=/inscription/2{64}i2>2{64}i2</a></dd>
+          <dt>preview</dt>
+          <dd><a href=/preview/1{64}i1>link</a></dd>
+          <dt>content</dt>
+          <dd><a href=/content/1{64}i1>link</a></dd>
+          <dt>content length</dt>
+          <dd>10 bytes</dd>
+          <dt>content type</dt>
+          <dd>text/plain;charset=utf-8</dd>
+          <dt>timestamp</dt>
+          <dd><time>1970-01-01 00:00:00 UTC</time></dd>
+          <dt>genesis height</dt>
+          <dd><a href=/block/0>0</a></dd>
+          <dt>genesis fee</dt>
+          <dd>1</dd>
+          <dt>genesis transaction</dt>
+          <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
+          <dt>location</dt>
+          <dd class=monospace>1{64}:1:0</dd>
+          <dt>output</dt>
+          <dd><a class=monospace href=/output/1{64}:1>1{64}:1</a></dd>
+          <dt>offset</dt>
+          <dd>0</dd>
+        </dl>
+      "
+      .unindent()
+    );
+  }
 }
