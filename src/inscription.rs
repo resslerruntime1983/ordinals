@@ -146,13 +146,17 @@ impl Inscription {
       return None;
     }
 
+    if value.len() > Txid::LEN + 4 {
+      return None;
+    }
+
     let (txid, index) = value.split_at(Txid::LEN);
 
     let txid = Txid::from_slice(txid).unwrap();
 
     Some(InscriptionId {
       txid,
-      value: todo!(),
+      index: todo!(),
     })
   }
 
