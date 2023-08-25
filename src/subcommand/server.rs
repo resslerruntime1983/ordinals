@@ -2804,4 +2804,44 @@ mod tests {
       &fs::read_to_string("templates/preview-unknown.html").unwrap(),
     );
   }
+
+  #[test]
+  fn inscription_links_to_parent() {
+    let server = TestServer::new_with_regtest();
+    server.mine_blocks(1);
+
+    let parent_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("text/plain", "hello").to_witness(),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let parent_inscription_id = InscriptionId {
+      txid: parent_txid,
+      index: 0,
+    };
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0), (2, 1, 0)],
+      witness: Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello".into()),
+        parent: Some(parent_inscription_id.parent_value()),
+      }
+      .to_witness(),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let inscription_id = InscriptionId { txid, index: 0 };
+
+    server.assert_response_regex(
+      format!("/inscription/{inscription_id}"),
+      StatusCode::OK,
+      format!(".*<title>Inscription 1</title>.*<dt>parent</dt>.*<dd><a class=monospace href=/inscription/{parent_inscription_id}>{parent_inscription_id}</a></dd>.*"),
+    );
+  }
 }

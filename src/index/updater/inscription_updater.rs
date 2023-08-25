@@ -226,32 +226,38 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           );
         }
 
-        let parent = if let Some(parent) = inscription.inscription.parent() {
-          if floating_inscriptions
-            .iter()
-            .any(|flotsam| flotsam.inscription_id == parent)
-          {
-            Some(parent)
-          } else {
-            None
-          }
-        } else {
-          None
-        };
-
         floating_inscriptions.push(Flotsam {
           inscription_id,
           offset,
           origin: Origin::New {
             cursed,
             fee: 0,
-            parent,
+            parent: inscription.inscription.parent(),
             unbound,
           },
         });
 
         new_inscriptions.next();
         id_counter += 1;
+      }
+    }
+
+    let potential_parents = floating_inscriptions
+      .iter()
+      .map(|flotsam| flotsam.inscription_id)
+      .collect::<HashSet<InscriptionId>>();
+
+    for flotsam in &mut floating_inscriptions {
+      if let Flotsam {
+        origin: Origin::New { parent, .. },
+        ..
+      } = flotsam
+      {
+        if let Some(purported_parent) = parent {
+          if !potential_parents.contains(purported_parent) {
+            *parent = None;
+          }
+        }
       }
     }
 
