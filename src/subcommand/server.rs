@@ -1111,7 +1111,7 @@ impl Server {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, reqwest::Url, std::net::TcpListener};
+  use {super::*, reqwest::Url, serde::de::DeserializeOwned, std::net::TcpListener};
 
   struct TestServer {
     bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
@@ -1142,6 +1142,17 @@ mod tests {
           .build(),
         None,
         &["--chain", "regtest"],
+        &[],
+      )
+    }
+
+    fn new_with_regtest_with_json_api() -> Self {
+      Self::new_server(
+        test_bitcoincore_rpc::builder()
+          .network(bitcoin::network::constants::Network::Regtest)
+          .build(),
+        None,
+        &["--chain", "regtest", "--enable-json-api"],
         &[],
       )
     }
@@ -1248,6 +1259,24 @@ mod tests {
         log::error!("{error}");
       }
       reqwest::blocking::get(self.join_url(path.as_ref())).unwrap()
+    }
+
+    pub(crate) fn get_json<T: DeserializeOwned>(&self, path: impl AsRef<str>) -> T {
+      if let Err(error) = self.index.update() {
+        log::error!("{error}");
+      }
+
+      let client = reqwest::blocking::Client::new();
+
+      let response = client
+        .get(self.join_url(path.as_ref()))
+        .header(reqwest::header::ACCEPT, "application/json")
+        .send()
+        .unwrap();
+
+      assert_eq!(response.status(), StatusCode::OK);
+
+      response.json().unwrap()
     }
 
     fn join_url(&self, url: &str) -> Url {
@@ -2807,7 +2836,7 @@ mod tests {
 
   #[test]
   fn inscription_links_to_parent() {
-    let server = TestServer::new_with_regtest();
+    let server = TestServer::new_with_regtest_with_json_api();
     server.mine_blocks(1);
 
     let parent_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -2842,6 +2871,13 @@ mod tests {
       format!("/inscription/{inscription_id}"),
       StatusCode::OK,
       format!(".*<title>Inscription 1</title>.*<dt>parent</dt>.*<dd><a class=monospace href=/inscription/{parent_inscription_id}>{parent_inscription_id}</a></dd>.*"),
+    );
+
+    assert_eq!(
+      server
+        .get_json::<InscriptionJson>(format!("/inscription/{inscription_id}"))
+        .parent,
+      Some(parent_inscription_id)
     );
   }
 }
