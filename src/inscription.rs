@@ -26,9 +26,9 @@ pub(crate) enum Curse {
 
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct Inscription {
-  body: Option<Vec<u8>>,
-  content_type: Option<Vec<u8>>,
-  parent: Option<Vec<u8>>,
+  pub(crate) body: Option<Vec<u8>>,
+  pub(crate) content_type: Option<Vec<u8>>,
+  pub(crate) parent: Option<Vec<u8>>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -51,7 +51,9 @@ impl Inscription {
   pub(crate) fn from_transaction(tx: &Transaction) -> Vec<TransactionInscription> {
     let mut result = Vec::new();
     for (index, tx_in) in tx.input.iter().enumerate() {
-      let Ok(inscriptions) = InscriptionParser::parse(&tx_in.witness) else { continue };
+      let Ok(inscriptions) = InscriptionParser::parse(&tx_in.witness) else {
+        continue;
+      };
 
       result.extend(
         inscriptions
@@ -100,6 +102,12 @@ impl Inscription {
       builder = builder
         .push_slice(CONTENT_TYPE_TAG)
         .push_slice(PushBytesBuf::try_from(content_type).unwrap());
+    }
+
+    if let Some(parent) = self.parent.clone() {
+      builder = builder
+        .push_slice(PARENT_TAG)
+        .push_slice(PushBytesBuf::try_from(parent).unwrap());
     }
 
     if let Some(body) = &self.body {
