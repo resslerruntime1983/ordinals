@@ -174,7 +174,7 @@ impl Inscription {
     let txid = Txid::from_slice(txid).unwrap();
 
     let index = [
-      index.get(0).copied().unwrap_or(0),
+      index.first().copied().unwrap_or(0),
       index.get(1).copied().unwrap_or(0),
       index.get(2).copied().unwrap_or(0),
       index.get(3).copied().unwrap_or(0),
