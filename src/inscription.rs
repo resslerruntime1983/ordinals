@@ -155,32 +155,15 @@ impl Inscription {
   pub(crate) fn parent(&self) -> Option<InscriptionId> {
     let value = self.parent.as_ref()?;
 
-    if value.len() < Txid::LEN {
-      return None;
-    }
-
-    if value.len() > Txid::LEN + 4 {
+    if value.len() != Txid::LEN + 4 {
       return None;
     }
 
     let (txid, index) = value.split_at(Txid::LEN);
 
-    if let Some(last) = index.last() {
-      if *last == 0 {
-        return None;
-      }
-    }
-
     let txid = Txid::from_slice(txid).unwrap();
 
-    let index = [
-      index.first().copied().unwrap_or(0),
-      index.get(1).copied().unwrap_or(0),
-      index.get(2).copied().unwrap_or(0),
-      index.get(3).copied().unwrap_or(0),
-    ];
-
-    let index = u32::from_le_bytes(index);
+    let index = u32::from_le_bytes(index.try_into().unwrap());
 
     Some(InscriptionId { txid, index })
   }
@@ -876,27 +859,13 @@ mod tests {
   }
 
   #[test]
-  fn inscription_with_parent_field_index_with_trailing_zeroes_has_no_parent() {
-    let mut parent = vec![1; 36];
-
-    parent[35] = 0;
-
-    assert!(Inscription {
-      parent: Some(parent),
-      ..Default::default()
-    }
-    .parent()
-    .is_none());
-  }
-
-  #[test]
   fn inscription_parent_txid_is_deserialized_correctly() {
     assert_eq!(
       Inscription {
         parent: Some(vec![
           0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e,
           0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d,
-          0x1e, 0x1f,
+          0x1e, 0x1f, 0x00, 0x00, 0x00, 0x00,
         ]),
         ..Default::default()
       }
@@ -910,75 +879,7 @@ mod tests {
   }
 
   #[test]
-  fn inscription_parent_with_zero_byte_index_field_is_deserialized_correctly() {
-    assert_eq!(
-      Inscription {
-        parent: Some(vec![1; 32]),
-        ..Default::default()
-      }
-      .parent()
-      .unwrap()
-      .index,
-      0
-    );
-  }
-
-  #[test]
-  fn inscription_parent_with_one_byte_index_field_is_deserialized_correctly() {
-    assert_eq!(
-      Inscription {
-        parent: Some(vec![
-          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-          0xff, 0xff, 0x01
-        ]),
-        ..Default::default()
-      }
-      .parent()
-      .unwrap()
-      .index,
-      1
-    );
-  }
-
-  #[test]
-  fn inscription_parent_with_two_byte_index_field_is_deserialized_correctly() {
-    assert_eq!(
-      Inscription {
-        parent: Some(vec![
-          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-          0xff, 0xff, 0x01, 0x02
-        ]),
-        ..Default::default()
-      }
-      .parent()
-      .unwrap()
-      .index,
-      0x0201,
-    );
-  }
-
-  #[test]
-  fn inscription_parent_with_three_byte_index_field_is_deserialized_correctly() {
-    assert_eq!(
-      Inscription {
-        parent: Some(vec![
-          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-          0xff, 0xff, 0x01, 0x02, 0x03
-        ]),
-        ..Default::default()
-      }
-      .parent()
-      .unwrap()
-      .index,
-      0x030201,
-    );
-  }
-
-  #[test]
-  fn inscription_parent_with_four_byte_index_field_is_deserialized_correctly() {
+  fn inscription_parent_index_is_deserialized_correctly() {
     assert_eq!(
       Inscription {
         parent: Some(vec![

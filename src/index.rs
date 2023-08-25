@@ -3543,7 +3543,7 @@ mod tests {
         witness: Inscription {
           content_type: Some("text/plain".into()),
           body: Some("hello".into()),
-          parent: Some(parent_inscription_id.parent_value()),
+          parent: Some(parent_inscription_id.parent_value().into()),
         }
         .to_witness(),
         ..Default::default()
@@ -3586,7 +3586,7 @@ mod tests {
         witness: Inscription {
           content_type: Some("text/plain".into()),
           body: Some("hello".into()),
-          parent: Some(parent_inscription_id.parent_value()),
+          parent: Some(parent_inscription_id.parent_value().into()),
         }
         .to_witness(),
         ..Default::default()

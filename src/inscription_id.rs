@@ -8,21 +8,11 @@ pub struct InscriptionId {
 
 impl InscriptionId {
   #[cfg(test)]
-  pub(crate) fn parent_value(self) -> Vec<u8> {
-    let index = self.index.to_le_bytes();
-    let mut index_slice = index.as_slice();
-
-    while index_slice.last().copied() == Some(0) {
-      index_slice = &index_slice[0..index_slice.len() - 1];
-    }
-
-    self
-      .txid
-      .to_byte_array()
-      .iter()
-      .chain(index_slice)
-      .copied()
-      .collect()
+  pub(crate) fn parent_value(self) -> [u8; 36] {
+    let mut value = [0; 36];
+    value[0..32].copy_from_slice(&self.txid.to_byte_array());
+    value[32..36].copy_from_slice(&self.index.to_le_bytes());
+    value
   }
 }
 
